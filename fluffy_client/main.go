@@ -1,4 +1,4 @@
-package main
+package fluffy
 
 import (
 	"log"
@@ -13,6 +13,49 @@ import (
 const (
 	address     = "localhost:7893"
 )
+
+type Client struct {
+	conn *grpc.ClientConn
+	sc pb.ServiceControlClient
+}
+
+var ctxTimeout = 10*time.Second
+
+func New(addr string) (client *Client, err error) {
+	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("did not connect: %+v", err)
+		return nil, err
+	}
+	c := pb.NewServiceControlClient(conn)
+	return &Client{conn: conn, sc: c}, nil
+}
+
+func (c *Client) Close() {
+	if c.conn != nil {
+		c.conn.Close()
+	}
+}
+
+func (c *Client) StartService(service string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), ctxTimeout)
+	defer cancel()
+	r, err := c.sc.StartService(ctx, &pb.ServiceRequest{Name: []string{service+".service"}})
+	if err != nil {
+		log.Fatalf("could not contact service: %v", err)
+	}
+	return r.Result[0], nil
+}
+
+func (c *Client) StopService(service string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), ctxTimeout)
+	defer cancel()
+	r, err := c.sc.StopService(ctx, &pb.ServiceRequest{Name: []string{service+".service"}})
+	if err != nil {
+		log.Fatalf("could not contact service: %v", err)
+	}
+	return r.Result[0], nil
+}
 
 func main() {
 	// Set up a connection to the server.
