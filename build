@@ -1,0 +1,1 @@
+protoc -I fluffy/ --go_out=plugins=grpc:fluffy fluffy/service_control.proto

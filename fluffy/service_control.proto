@@ -1,0 +1,22 @@
+// Copyright me, I guess
+syntax = "proto3";
+
+package fluffy;
+
+service ServiceControl {
+  rpc StartService (ServiceRequest) returns (ServiceReply) {}
+  rpc StatusService (ServiceRequest) returns (ServiceStatusReply) {}
+  rpc StopService (ServiceRequest) returns (ServiceReply) {}
+}
+
+message ServiceRequest {
+  repeated string name = 1;
+}
+
+message ServiceReply {
+  repeated string result = 1;
+}
+
+message ServiceStatusReply {
+  map<string, string> states = 1;
+}
